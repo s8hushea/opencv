@@ -3,13 +3,14 @@ import numpy as np
 from typing import Tuple
 import pyk4a
 
-def read_frame() -> Tuple[bool,np.ndarray]:
+
+def read_frame():
     k4a = PyK4A(
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
             color_format=pyk4a.ImageFormat.COLOR_BGRA32,
             depth_mode=pyk4a.DepthMode.NFOV_UNBINNED,
-            synchronized_images_only=False,
+            synchronized_images_only=True,
 
         )
     )
@@ -21,8 +22,9 @@ def read_frame() -> Tuple[bool,np.ndarray]:
     k4a.whitebalance = 4510
     assert k4a.whitebalance == 4510
     frame = k4a.get_capture().depth
-    if np.any(frame):
+    color = k4a.get_capture().color
+    if np.any(frame) and np.any(color):
         frame = np.clip(frame, 0, 2**10 - 1)
         frame >>= 2
-        return True, frame.astype(np.uint8)
-    return False, None
+        return True, frame.astype(np.uint8), color
+    return False, None, None
