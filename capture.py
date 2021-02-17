@@ -1,4 +1,4 @@
-''''import cv2
+import cv2
 import numpy as np
 import json
 
@@ -12,19 +12,19 @@ import MiniUtils
 import DepthRGB
 from gestures import recognize
 
-isOpen = False
-BODY_PARTS = { "Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
-                       "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
-                       "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
-                       "LEye": 15, "REar": 16, "LEar": 17, "Background": 18 }
 
-POSE_PAIRS = [ ["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
-                       ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
-                       ["RShoulder", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["LShoulder", "LHip"],
-                       ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
-                       ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"] ]
+BODY_PARTS = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
+              "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
+              "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
+              "LEye": 15, "REar": 16, "LEar": 17, "Background": 18}
 
-net = cv2.dnn.readNetFromTensorflow("graph_opt.pb") ##weights
+POSE_PAIRS = [["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
+              ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
+              ["RShoulder", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["LShoulder", "LHip"],
+              ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
+              ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"]]
+
+net = cv2.dnn.readNetFromTensorflow("graph_opt.pb")  ##weights
 inWidth = 654
 inHeight = 368
 thr = 0.2
@@ -33,8 +33,6 @@ thr = 0.2
 def nothing(x):
     # any operation
     pass
-
-
 
 
 def main():
@@ -48,9 +46,8 @@ def main():
         )
     )
 
-
     k4a.start()
-        # getters and setters directly get and set on device
+    # getters and setters directly get and set on device
     k4a.whitebalance = 4500
     assert k4a.whitebalance == 4500
     k4a.whitebalance = 4510
@@ -70,7 +67,8 @@ def main():
                 else:
                     cv2.imshow('Body', frame)
             else:
-                imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4, draw=True, showCanny=True)
+                imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4, draw=True,
+                                                        showCanny=True)
                 cv2.imshow('Conts', imgConts)
             key = cv2.waitKey(1)
             if key == ord('q'):
@@ -80,8 +78,6 @@ def main():
 
 
 def bodyTracking(frame):
-
-
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
     frameWidth = frame.shape[1]
     frameHeight = frame.shape[0]
@@ -148,4 +144,3 @@ def draw_helpers(img_draw: np.ndarray) -> None:
 
 if __name__ == "__main__":
     main()
-''''
