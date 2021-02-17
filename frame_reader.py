@@ -1,4 +1,4 @@
-from pyk4a import Config, PyK4A
+'''from pyk4a import Config, PyK4A
 import numpy as np
 from typing import Tuple
 import pyk4a
@@ -28,3 +28,4 @@ def read_frame():
         frame >>= 2
         return True, frame.astype(np.uint8), color
     return False, None, None
+'''

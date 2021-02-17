@@ -1,4 +1,4 @@
-import cv2
+''''import cv2
 import numpy as np
 import json
 
@@ -10,6 +10,24 @@ from pyk4a import transformation as Trans
 import Utils
 import MiniUtils
 import DepthRGB
+from gestures import recognize
+
+isOpen = False
+BODY_PARTS = { "Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
+                       "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
+                       "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
+                       "LEye": 15, "REar": 16, "LEar": 17, "Background": 18 }
+
+POSE_PAIRS = [ ["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
+                       ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
+                       ["RShoulder", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["LShoulder", "LHip"],
+                       ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
+                       ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"] ]
+
+net = cv2.dnn.readNetFromTensorflow("graph_opt.pb") ##weights
+inWidth = 654
+inHeight = 368
+thr = 0.2
 
 
 def nothing(x):
@@ -17,15 +35,6 @@ def nothing(x):
     pass
 
 
-'''cv2.namedWindow("Trackbars")
-
-cv2.createTrackbar("L-H", "Trackbars", 0, 255, nothing)
-cv2.createTrackbar("L-S", "Trackbars", 0, 255, nothing)
-cv2.createTrackbar("L-V", "Trackbars", 0, 255, nothing)
-cv2.createTrackbar("U-H", "Trackbars", 0, 255, nothing)
-cv2.createTrackbar("U-S", "Trackbars", 0, 255, nothing)
-cv2.createTrackbar("U-V", "Trackbars", 0, 255, nothing)
-'''
 
 
 def main():
@@ -51,33 +60,18 @@ def main():
         capture = k4a.get_capture()
 
         if np.any(capture.color) and np.any(capture.depth):
-            # image = np.array(capture.color, dtype=np.uint8)
-            depthimage = colorize(capture.depth, (None, None))
-            depthimgtransformed = colorize(capture.transformed_depth, (None, None), cv2.COLORMAP_HSV)
-
-            depthColorized = colorize(capture.transformed_depth, (None, 5000))
-            # imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4, draw=True, showCanny=True)
-            ## imgConts, conts = MiniUtils.getContours(image, filter=4, draw=True)
-
-            # cv2.imshow("Depth", colorize(capture.depth, (None, 5000), cv2.COLORMAP_HSV))
-            # print(capture.depth[129][446])
-            # cv2.imshow('Contours', imgConts)
-            # DepthRGB.checkPositionDepthAndRGB(capture.color, depthimgtransformed, depthimage)
-            # calc.calculatepixels2coord(pixel_x=565, pixel_y=175, depth_transformed=capture.transformed_depth)
-            DepthValues = []
-            for i in range(720):
-                for j in range (1280):
-                    print('{}{}{}{}{}{}'.format('X: ', i, ' Y: ', j, ' Depth: ', capture.transformed_depth[i][j]))
-                    if i == 719 and j == 1279:
-                        break
-            #cv2.imshow('depth', depthimage)
-            #cv2.imshow('rgb', capture.color)
-            #'''key = cv2.waitKey(1)
-            #if key == ord(' '):
-            #    cv2.imwrite(filename='transformed_depth.png', img=depthimgtransformed)
-            #    cv2.imwrite(filename='rgb.png', img=capture.color)
-            #elif key == ord('q'):
-            #    cv2.destroyAllWindows()'''
+            checker, frame, length = bodyTracking(capture.color)
+            if checker:
+                if length < 11:
+                    frame_depth = np.clip(frame, 0, 2 ** 10 - 1)
+                    frame_depth >>= 2
+                    img_draw = handEstimator(frame_depth)
+                    cv2.imshow('Hand', img_draw)
+                else:
+                    cv2.imshow('Body', frame)
+            else:
+                imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4, draw=True, showCanny=True)
+                cv2.imshow('Conts', imgConts)
             key = cv2.waitKey(1)
             if key == ord('q'):
                 cv2.destroyAllWindows()
@@ -85,6 +79,73 @@ def main():
     k4a.stop()
 
 
+def bodyTracking(frame):
+
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+    frameWidth = frame.shape[1]
+    frameHeight = frame.shape[0]
+    net.setInput(
+        cv2.dnn.blobFromImage(frame, 1.0, (inWidth, inHeight), (127.5, 127.5, 127.5), swapRB=True, crop=False))
+    out = net.forward()
+    out = out[:, :19, :, :]  # MobileNet output [1, 57, -1, -1], we only need the first 19 elements
+
+    assert (len(BODY_PARTS) == out.shape[1])
+
+    points = []
+    for i in range(len(BODY_PARTS)):
+        # Slice heatmap of corresponging body's part.
+        heatMap = out[0, i, :, :]
+
+        # Originally, we try to find all the local maximums. To simplify a sample
+        # we just find a global one. However only a single pose at the same time
+        # could be detected this way.
+        _, conf, _, point = cv2.minMaxLoc(heatMap)
+        x = (frameWidth * point[0]) / out.shape[3]
+        y = (frameHeight * point[1]) / out.shape[2]
+        # Add a point if it's confidence is higher than threshold.
+        points.append((int(x), int(y)) if conf > thr else None)
+
+    if len(points) < 1:
+        return False, None, 0
+    for pair in POSE_PAIRS:
+        partFrom = pair[0]
+        partTo = pair[1]
+        assert (partFrom in BODY_PARTS)
+        assert (partTo in BODY_PARTS)
+
+        idFrom = BODY_PARTS[partFrom]
+        idTo = BODY_PARTS[partTo]
+
+        if points[idFrom] and points[idTo]:
+            cv2.line(frame, points[idFrom], points[idTo], (0, 255, 0), 3)
+            cv2.ellipse(frame, points[idFrom], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
+            cv2.ellipse(frame, points[idTo], (3, 3), 0, 0, 360, (0, 0, 255), cv2.FILLED)
+        t, _ = net.getPerfProfile()
+        freq = cv2.getTickFrequency() / 1000
+        cv2.putText(frame, '%.2fms' % (t / freq), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+        return True, frame, len(points)
+
+
+def handEstimator(frame_depth):
+    num_fingers, img_draw = recognize(frame_depth)
+    # draw some helpers for correctly placing hand
+    draw_helpers(img_draw)
+    # print number of fingers on image
+    cv2.putText(img_draw, str(num_fingers), (30, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
+    return img_draw
+
+
+def draw_helpers(img_draw: np.ndarray) -> None:
+    # draw some helpers for correctly placing hand
+    height, width = img_draw.shape[:2]
+    color = (0, 102, 255)
+    cv2.circle(img_draw, (width // 2, height // 2), 3, color, 2)
+    cv2.rectangle(img_draw, (width // 3, height // 3),
+                  (width * 2 // 3, height * 2 // 3), color, 2)
+
 
 if __name__ == "__main__":
     main()
+''''

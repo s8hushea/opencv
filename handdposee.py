@@ -5,22 +5,20 @@ from gestures import recognize
 from frame_reader import read_frame
 
 
-def draw_helpers(img_draw: np.ndarray) -> None:
+'''def draw_helpers(img_draw: np.ndarray) -> None:
     # draw some helpers for correctly placing hand
     height, width = img_draw.shape[:2]
     color = (0,102,255)
     cv2.circle(img_draw, (width // 2, height // 2), 3, color, 2)
     cv2.rectangle(img_draw, (width // 3, height // 3),
                   (width * 2 // 3, height * 2 // 3), color, 2)
+'''
 
-
-def main():
+'''def main():
 
     while 1:
         checker, frame, color = read_frame()
-        print('not here yet')
         if checker is True:
-            print('am here')
             num_fingers, img_draw = recognize(frame)
             # draw some helpers for correctly placing hand
             draw_helpers(img_draw)
@@ -35,4 +33,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main()'''
