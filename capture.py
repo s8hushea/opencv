@@ -13,21 +13,7 @@ import DepthRGB
 from gestures import recognize
 
 
-BODY_PARTS = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
-              "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
-              "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
-              "LEye": 15, "REar": 16, "LEar": 17, "Background": 18}
 
-POSE_PAIRS = [["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
-              ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
-              ["RShoulder", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["LShoulder", "LHip"],
-              ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
-              ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"]]
-
-net = cv2.dnn.readNetFromTensorflow("graph_opt.pb")  ##weights
-inWidth = 654
-inHeight = 368
-thr = 0.2
 
 
 def nothing(x):
@@ -41,7 +27,7 @@ def main():
             color_resolution=pyk4a.ColorResolution.RES_720P,
             color_format=pyk4a.ImageFormat.COLOR_BGRA32,
             depth_mode=pyk4a.DepthMode.NFOV_UNBINNED,
-            synchronized_images_only=False,
+            synchronized_images_only=True,
 
         )
     )
@@ -52,24 +38,50 @@ def main():
     assert k4a.whitebalance == 4500
     k4a.whitebalance = 4510
     assert k4a.whitebalance == 4510
+    windowID = '' #Give id to the windows to know which to destroy when not needed
+    BODY_PARTS = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
+                  "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
+                  "RAnkle": 10, "LHip": 11, "LKnee": 12, "LAnkle": 13, "REye": 14,
+                  "LEye": 15, "REar": 16, "LEar": 17, "Background": 18}
 
+    POSE_PAIRS = [["Neck", "RShoulder"], ["Neck", "LShoulder"], ["RShoulder", "RElbow"],
+                  ["RElbow", "RWrist"], ["LShoulder", "LElbow"], ["LElbow", "LWrist"],
+                  ["Neck", "RHip"], ["RHip", "RKnee"], ["RKnee", "RAnkle"], ["Neck", "LHip"],
+                  ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"], ["Nose", "REye"],
+                  ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"]]
+
+    net = cv2.dnn.readNetFromTensorflow("graph_opt.pb")  ##weights
+    inWidth = 654
+    inHeight = 368
+    thr = 0.2
     while 1:
         capture = k4a.get_capture()
 
         if np.any(capture.color) and np.any(capture.depth):
-            checker, frame, length = bodyTracking(capture.color)
-            if checker:
+            checker, frame, length = bodyTracking(capture.color, net, inWidth, inHeight, BODY_PARTS, POSE_PAIRS, thr)
+            frame_depth = np.clip(capture.depth, 0, 2 ** 10 - 1)
+            frame_depth >>= 2
+            num_fingers, img_draw = handEstimator(frame_depth)
+            imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4)
+            cv2.imshow('Hand', img_draw)
+            cv2.imshow('rgb', capture.color)
+            '''if checker:
                 if length < 11:
-                    frame_depth = np.clip(frame, 0, 2 ** 10 - 1)
-                    frame_depth >>= 2
-                    img_draw = handEstimator(frame_depth)
+                    if windowID != '01' and windowID != '':
+                        cv2.destroyAllWindows()
                     cv2.imshow('Hand', img_draw)
+                    windowID = '01'
                 else:
+                    if windowID != '10' and windowID != '':
+                        cv2.destroyAllWindows()
                     cv2.imshow('Body', frame)
+                    windowID = '10'
             else:
-                imgConts, conts = MiniUtils.getContours(capture.color, capture.transformed_depth, filter=4, draw=True,
-                                                        showCanny=True)
                 cv2.imshow('Conts', imgConts)
+                if windowID != '11' and windowID != '':
+                    cv2.destroyAllWindows()
+                windowID = '11'
+                '''
             key = cv2.waitKey(1)
             if key == ord('q'):
                 cv2.destroyAllWindows()
@@ -77,7 +89,8 @@ def main():
     k4a.stop()
 
 
-def bodyTracking(frame):
+def bodyTracking(frame, net, inWidth, inHeight, BODY_PARTS, POSE_PAIRS, thr=0.2):
+    n = 0
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
     frameWidth = frame.shape[1]
     frameHeight = frame.shape[0]
@@ -102,8 +115,13 @@ def bodyTracking(frame):
         # Add a point if it's confidence is higher than threshold.
         points.append((int(x), int(y)) if conf > thr else None)
 
-    if len(points) < 1:
-        return False, None, 0
+#This loop is to know how many points that exceed the threshold do we have
+    for i in points:
+        if i is None:
+            n = n + 1
+    length = 19 - n
+    if length <= 1:
+        return False, None, _
     for pair in POSE_PAIRS:
         partFrom = pair[0]
         partTo = pair[1]
@@ -120,7 +138,7 @@ def bodyTracking(frame):
         t, _ = net.getPerfProfile()
         freq = cv2.getTickFrequency() / 1000
         cv2.putText(frame, '%.2fms' % (t / freq), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
-        return True, frame, len(points)
+    return True, frame, length
 
 
 def handEstimator(frame_depth):
@@ -130,7 +148,7 @@ def handEstimator(frame_depth):
     # print number of fingers on image
     cv2.putText(img_draw, str(num_fingers), (30, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
-    return img_draw
+    return num_fingers, img_draw
 
 
 def draw_helpers(img_draw: np.ndarray) -> None:
