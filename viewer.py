@@ -11,19 +11,19 @@ def main():
         Config(
             color_resolution=pyk4a.ColorResolution.RES_720P,
             depth_mode=pyk4a.DepthMode.NFOV_UNBINNED,
-            synchronized_images_only=True,
+            synchronized_images_only=False,
         )
     )
-    k4a.start()'''
+    k4a.start()
 
-    '''# getters and setters directly get and set on device
+    # getters and setters directly get and set on device
     k4a.whitebalance = 4500
     assert k4a.whitebalance == 4500
     k4a.whitebalance = 4510
     assert k4a.whitebalance == 4510
     while True:
         capture = k4a.get_capture()
-        if np.any(capture.depth):
+        if np.any(capture.depth) and np.any(capture.color):
             trns_depth = capture.transformed_depth
             with open('depthvalues.json', 'w') as f:
                 json.dump(trns_depth.tolist(), f)
@@ -37,7 +37,7 @@ def main():
     k4a.stop()'''
     with open('depthvalues.json') as f:
         transformed_depth = json.load(f)
-    calc.calculatepixels2coord(712, 105, transformed_depth)
+    calc.calculatepixels2coord(775, 400, transformed_depth)
 
 if __name__ == "__main__":
     main()
