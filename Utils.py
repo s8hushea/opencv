@@ -5,7 +5,7 @@ import math
 import json
 import sys
 
-scale = 4
+scale = 3
 
 def dotproduct(v1, v2):
     return sum((a*b) for a, b in zip(v1, v2))
@@ -44,56 +44,65 @@ def isSquare(approx):
 def getContours(img, cThr = [222, 70], showCanny = True, minArea = 1000, filter = 0, draw = False):
 
     # change the range dynamically
-    '''
-    l_h = cv2.getTrackbarPos("L-H", "Trackbars")
-    l_s = cv2.getTrackbarPos("L-S", "Trackbars")
-    l_v = cv2.getTrackbarPos("L-V", "Trackbars")
-    u_h = cv2.getTrackbarPos("U-H", "Trackbars")
-    u_s = cv2.getTrackbarPos("U-S", "Trackbars")
-    u_v = cv2.getTrackbarPos("U-V", "Trackbars")
-    '''
+    #l_h = cv2.getTrackbarPos("L-H", "Trackbars")
+    #l_s = cv2.getTrackbarPos("L-S", "Trackbars")
+    #l_v = cv2.getTrackbarPos("L-V", "Trackbars")
+    #u_h = cv2.getTrackbarPos("U-H", "Trackbars")
+    #u_s = cv2.getTrackbarPos("U-S", "Trackbars")
+    #u_v = cv2.getTrackbarPos("U-V", "Trackbars")
 
-    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ###imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    ##imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    #covertImg = cv2.convertMaps()
+
+    #dx, dy = cv2.spatialGradient(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+
+    #gradient_img = np.uint8(cv2.convertScaleAbs(dx ** 2 + dy ** 2) ** 0.5)
+
+    ####imgLap = cv2.Laplacian(img, cv2.CV_64F)
     #cv2.imshow('HSV', imgHSV)
+    #cv2.imshow('Gradient', gradient_img)
+    #cv2.waitKey(0)
+    ####cv2.imshow('imgLap', imgLap)
     # the input image is blurred by a 5x5 Gaussian convolution filter and written tolen(approx), area, approx, bbox, i out
     # the size of the Gaussian kernel should always be given in odd numbers since the
     # Gaussian kernel(5,5) is computed at the center pixel in that area.
-    imgBlur = cv2.GaussianBlur(imgGray, (5, 5), 1)
+    ##imgBlur = cv2.GaussianBlur(imgGray, (5, 5), 1)
     #lower_red = np.array([l_h, l_s, l_v])
     #upper_red = np.array([u_h, u_s, u_v])
     lower_red = np.array([0, 123, 77])
     upper_red = np.array([255, 255, 255])
 
-    ###mask = cv2.inRange(imgHSV, lower_red, upper_red)
+    mask = cv2.inRange(imgHSV, lower_red, upper_red)
     # convert an input image into an edge image
-    imgCanny = cv2.Canny(imgBlur, cThr[0], cThr[1])
-    #imgCanny = cv2.Canny(imgBlur, l_s, l_h)
+    ##imgCanny = cv2.Canny(imgBlur, cThr[0], cThr[1])
+    ##imgCanny = cv2.Canny(imgBlur, l_s, l_h)
 
     kernel = np.ones((5,5))
-    ###mask = cv2.erode(mask, kernel)
+    mask = cv2.erode(mask, kernel)
     # dilate operation used to find connected components
-    imgDial = cv2.dilate(imgCanny, kernel, iterations = 3)
+    ##imgDial = cv2.dilate(imgCanny, kernel, iterations = 3)
     # erode eliminate "speckle" noise in an image
-    imgThre = cv2.erode(imgDial, kernel, iterations = 2)
-    if showCanny: cv2.imshow('Canny', imgThre)
-    ###if showCanny: cv2.imshow('Canny', mask)
+    ##imgThre = cv2.erode(imgDial, kernel, iterations = 2)
+    ##if showCanny: cv2.imshow('Canny', imgThre)
+    if showCanny: cv2.imshow('Canny', mask)
     # find the contour
     # cv2.RETR_EXTERNAL:in this case we need the outer edges
     # cv2.CHAIN_APPROX_SIMPLE use the simple approximation
-    contours, hierarchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    ###contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    ##contours, hierarchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #print('contours : ',contours)
     finalContours = []
     for i in contours:
         # find the contour area
         area = cv2.contourArea(i)
         if area > minArea:
             # contour perimeter
-            #peri = cv2.arcLength(i, True)
+            peri = cv2.arcLength(i, True)
             # define our contour point
             # cv2.approxPolyDP(i = defined contour, resolution, True = closed Curve)
             #approx = cv2.approxPolyDP(i, 0.02*peri, True)
-            approx = cv2.approxPolyDP(i, 0.02 * cv2.arcLength(i, True), True)
+            approx = cv2.approxPolyDP(i, 0.005 * cv2.arcLength(i, True), True)
             # find the bounding box
             bbox = cv2.boundingRect(approx)
 
@@ -117,7 +126,8 @@ def getContours(img, cThr = [222, 70], showCanny = True, minArea = 1000, filter 
     finalContours = sorted(finalContours, key = lambda x:x[1], reverse = True)
     if draw:
         for con in finalContours:
-            cv2.drawContours(img, con[4], -1, (0, 255, 0), 10)
+            pass
+            #cv2.drawContours(img, con[4], -1, (255, 0, 0), 10)
 
     return img, finalContours
 
@@ -369,6 +379,9 @@ def warpImg(img, points, w, h, pad = 20):
 def findDis(pts1, pts2):
     return ((pts2[0]-pts1[0])**2 + (pts2[1]-pts1[1])**2)**0.5
 
+def findDisIn3D(pts1, pts2):
+    return ((pts2[0]-pts1[0])**2 + (pts2[1]-pts1[1])**2 + + (pts2[2]-pts1[2])**2)**0.5
+
 def findDisInXY(x1,y1,x2,y2):
     return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
 
@@ -376,6 +389,9 @@ def findDisInXY(x1,y1,x2,y2):
 def findLength(pos1, pos2):
     #print('length', ((pos2[0]-pos1[0])**2 + (pos2[1]-pos1[1])**2 + (pos2[2]-pos1[2])**2)**0.5)
     return ((pos2[0]-pos1[0])**2 + (pos2[1]-pos1[1])**2 + (pos2[2]-pos1[2])**2)**0.5
+
+def findLengthNp(pos1, pos2):
+    return ((pos2[0][0] - pos1[0][0]) ** 2 + (pos2[1][0] - pos1[1][0]) ** 2 + (pos2[2][0] - pos1[2][0]) ** 2) ** 0.5
 
 def convertApproxToList(approx):
     vertexList = []
@@ -402,27 +418,47 @@ def saveCamPosInJSON(actual7PolygonPos, fileName):
 
     if fileName == "actual7PolygonPos.json":
         output_json = {"Actual7PolygonPos":{}}
-    elif fileName == "goal7PolygonPos.json":
+    if fileName == "goal7PolygonPos.json":
         output_json = {"Goal7PolygonPos": {}}
+
+    #if fileName == "actual7PolygonPixelPos.json":
+        #output_json = {"Actual7PolygonPixel": {}}
 
     dictName = ["BigTriangle1", "BigTriangle2", "SmallTriangle1", "SmallTriangle2", "MiddleTriangle", "Square", "Parallelgram"]
 
-    for i in range(7):
-        #print('i', i)
-        pos = {dictName[i]:{}}
-        pos[dictName[i]].update({"x": actual7PolygonPos[dictName[i]][0]})
-        pos[dictName[i]].update({"y": actual7PolygonPos[dictName[i]][1]})
-        pos[dictName[i]].update({"z": actual7PolygonPos[dictName[i]][2]})
-        pos[dictName[i]].update({"a": actual7PolygonPos[dictName[i]][3]})
-        pos[dictName[i]].update({"b": actual7PolygonPos[dictName[i]][4]})
-        pos[dictName[i]].update({"c": actual7PolygonPos[dictName[i]][5]})
-        if fileName == "actual7PolygonPos.json":
-            output_json["Actual7PolygonPos"].update(pos)
-        elif fileName == "goal7PolygonPos.json":
-            output_json["Goal7PolygonPos"].update(pos)
+    if fileName == "actual7PolygonPos.json" or fileName == "goal7PolygonPos.json":
+        for i in range(7):
+            #print('i', i)
+            pos = {dictName[i]:{}}
+            pos[dictName[i]].update({"x": actual7PolygonPos[dictName[i]][0]})
+            pos[dictName[i]].update({"y": actual7PolygonPos[dictName[i]][1]})
+            pos[dictName[i]].update({"z": actual7PolygonPos[dictName[i]][2]})
+            pos[dictName[i]].update({"a": actual7PolygonPos[dictName[i]][3]})
+            pos[dictName[i]].update({"b": actual7PolygonPos[dictName[i]][4]})
+            pos[dictName[i]].update({"c": actual7PolygonPos[dictName[i]][5]})
+
+            if fileName == "actual7PolygonPos.json":
+                output_json["Actual7PolygonPos"].update(pos)
+            elif fileName == "goal7PolygonPos.json":
+                output_json["Goal7PolygonPos"].update(pos)
+        #with open(fileName, "w") as f:
+            #json.dump(output_json, f, separators=(",", ":"), indent=2)
+    '''
+    if fileName == "actual7PolygonPixelPos.json":
+        for i in range(2):
+            pos = {dictName[i]: {}}
+            pos[dictName[i]].update({"x": actual7PolygonPos[dictName[i]][0]})
+            pos[dictName[i]].update({"y": actual7PolygonPos[dictName[i]][1]})
+
+            if fileName == "actual7PolygonPixelPos.json":
+                output_json["Actual7PolygonPixel"].update(pos)
+        with open(fileName, "w") as f:
+            json.dump(output_json, f, separators=(",",":"), indent=2)
+    '''
 
     with open(fileName, "w") as f:
         json.dump(output_json, f, separators = (",",":"), indent = 2)
+
 
 # read actual pos of 7 polygon from actual7PolygonPos.json
 def getCamPosFromJSON(fileName):
@@ -459,12 +495,12 @@ def getGoalPosFromJSON(fileName):
     posName = ["x", "y", "z", "a", "b", "c"]
 
     goal7PolygonPos = {'BigTriangle1': [0,0,0,0,0,0],
-                         'BigTriangle2': [0,0,0,0,0,0],
-                         'SmallTriangle1': [0,0,0,0,0,0],
-                         'SmallTriangle2': [0,0,0,0,0,0],
-                         'MiddleTriangle': [0,0,0,0,0,0],
-                         'Square': [0,0,0,0,0,0],
-                         'Parallelgram': [0,0,0,0,0,0]}
+                       'BigTriangle2': [0,0,0,0,0,0],
+                       'SmallTriangle1': [0,0,0,0,0,0],
+                       'SmallTriangle2': [0,0,0,0,0,0],
+                       'MiddleTriangle': [0,0,0,0,0,0],
+                       'Square': [0,0,0,0,0,0],
+                       'Parallelgram': [0,0,0,0,0,0]}
 
     for i in range(len(msg_json["Goal7PolygonPos"])):
         pos = []
