@@ -44,6 +44,6 @@ def caculateRoboticCoordToCameraCoord(robotCoord):
     return camCoord_vec
 
 if __name__ == "__main__":
-    robotCoord = np.array([[250.4], [505.4], [89.05]])
+    robotCoord = np.array([[-95.64], [557.19], [50.55]])
     camCoord_vec = caculateRoboticCoordToCameraCoord(robotCoord)
     print('camCoord_vec', camCoord_vec)

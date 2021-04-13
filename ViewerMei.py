@@ -68,7 +68,12 @@ def main():
     pixel_x = 485
     pixel_y = 469
 
-    pixels = [[474, 449], [567, 447], [652, 447], [740, 449], [829,450]]
+    pixels = [[476, 446, np.array([[206.1], [760.42], [48.73]])],
+              [565, 447, np.array([[100.97], [756.96], [49.02]])],
+              [651, 448, np.array([[4.27], [756.45], [49.06]])],
+              [738, 447, np.array([[-96.32], [756.67], [49.67]])],
+              [828, 449, np.array([[-194.71], [756.65], [49.78]])]]
+
     input_name = "output_wp2camera.json"
     input_name2 = "output_b2c.json"
     tvec, rvec, camera_matrix, dist_coeffs = CameraCalibration.cam_cal().read_wp2c(input_name)
@@ -92,14 +97,21 @@ def main():
     #print('DeltaZ =', np.abs(xc_yc_zc[2][0] - x_y_z[2][0]))
     depth_coods = []
     pc_coods = []
+    coods_pixels = []
+
     for pixel in pixels:
+        cood = []
         xc_yc_zc = calc.calculatepixels2coord(pixel[0], pixel[1], transformed_depth)
-        print('DepthValueCoordinates for pixel{}:\n {}'.format(pixel, xc_yc_zc))
+        cood.append(xc_yc_zc)
+        print('DepthValueCoordinates for pixel{}:\n {}'.format(pixel[0:2], xc_yc_zc))
         depth_coods.append(xc_yc_zc)
         xpc_ypc_zpc = pointcloud[pixel[1]][pixel[0]]
         xpc_ypc_zpc_np = np.array([[xpc_ypc_zpc[0]], [xpc_ypc_zpc[1]], [xpc_ypc_zpc[2]]])
-        print('PCCoordinates for pixel{}:\n {}'.format(pixel, xpc_ypc_zpc_np))
+        cood.append(xpc_ypc_zpc_np)
+        print('PCCoordinates for pixel{}:\n {}'.format(pixel[0:2], xpc_ypc_zpc_np))
         pc_coods.append(pc_coods)
+        r2cccs = calc.caculateRoboticCoordToCameraCoord(pixel[2]) #Robotic Coorinates to Camera Coordinate System
+        print('RobotSpitzeCam Coordinates for pixel {}:\n {}'.format(pixel[0:2], r2cccs))
         pixel_mat_depth = np.eye(4, 4)
         pixel_mat_depth[0:3, 3] = np.transpose(xc_yc_zc)
         pixel_mat_depth[0:3, 0:3] = rot_mat
@@ -110,7 +122,8 @@ def main():
 
         rpy = rot2euler(result_depth[0:3, 0:3], degrees=True)
         result2_depth[3:7, 0] = np.transpose(rpy)
-        print('Robot CS based on Depth for pixel {}:\n {}'.format(pixel, result2_depth))
+        cood.append(result2_depth)
+        print('Robot CS based on Depth for pixel {}:\n {}'.format(pixel[0:2], result2_depth))
 
         pixel_mat_pc = np.eye(4, 4)
         pixel_mat_pc[0:3, 3] = np.transpose(xpc_ypc_zpc_np)
@@ -121,8 +134,9 @@ def main():
         result2_pc[0:3, 0] = result_pc[0:3, 3]
         rpy = rot2euler(result_pc[0:3, 0:3], degrees=True)
         result2_pc[3:7, 0] = np.transpose(rpy)
-        print('Robot CS based on PC for pixel {}:\n {}'.format(pixel, result2_pc))
-
+        cood.append(result2_pc)
+        print('Robot CS based on PC for pixel {}:\n {}'.format(pixel[0:2], result2_pc))
+        coods_pixels.append(cood)
 
     xpc_ypc_zpc = pointcloud[pixel_y][pixel_x]
     xpc_ypc_zpc_np = np.array([[xpc_ypc_zpc[0]], [xpc_ypc_zpc[1]], [xpc_ypc_zpc[2]]])
