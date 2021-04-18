@@ -6,12 +6,11 @@ from scipy.spatial.transform import Rotation as R
 from scipy import linalg
 import json
 
-
 def euler2rot(theta, degrees):
     if degrees:
-        alpha = theta[0] * np.pi / 180
-        beta = theta[1] * np.pi / 180
-        gamma = theta[2] * np.pi / 180
+        alpha = theta[0]*np.pi/180
+        beta = theta[1]*np.pi/180
+        gamma = theta[2]*np.pi/180
     else:
         alpha = theta[0]
         beta = theta[1]
@@ -35,7 +34,6 @@ def euler2rot(theta, degrees):
 
     return np.linalg.multi_dot((Rz, Ry, Rx))
 
-
 def rot2euler(rot, degrees):
     beta = math.asin(-rot[2, 0])
     if ((beta > (np.pi / 2)) or (beta < -(np.pi / 2))):
@@ -45,36 +43,35 @@ def rot2euler(rot, degrees):
         gamma = (math.atan2(rot[2, 1], rot[2, 2]))
         alpha = (math.atan2(rot[1, 0], rot[0, 0]))
     if degrees:
-        alpha = alpha * 180 / np.pi
-        beta = beta * 180 / np.pi
-        gamma = gamma * 180 / np.pi
+        alpha = alpha*180/np.pi
+        beta = beta*180/np.pi
+        gamma = gamma*180/np.pi
 
     return [alpha, beta, gamma]
-
 
 def projection_matrix(tvec, rvec, camera_mat, imgPoints, objPoints, nr):
     np.set_printoptions(precision=5)
     np.set_printoptions(suppress=True)
-    # Pixel-Koordinaten: (x, y, 1) bzw. (Spalte, Reihe, 1)
+# Pixel-Koordinaten: (x, y, 1) bzw. (Spalte, Reihe, 1)
     o_pixel = None
     o_camera = None
     o_camera2 = None
-    for i in range(0, len(imgPoints[nr])):  # len(imgPoints[nr])
+    for i in range(0, len(imgPoints[nr])):  #len(imgPoints[nr])
         p_tmp = np.array([[imgPoints[nr][i][0][0]], [imgPoints[nr][i][0][1]], [1]])
 
-        objp = np.array([[objPoints[i][0]], [objPoints[i][1]], [objPoints[i][2]]])
+        objp = np.array([[objPoints[i][0]], [objPoints[i][1]],[objPoints[i][2]]])
         rot_mat = np.zeros((3, 3))
         cv2.Rodrigues(rvec[nr], rot_mat)
         objp_new = np.dot(rot_mat, objp)
         p_tmp2 = np.add(tvec[nr], objp_new)
         p_tmp3 = copy.deepcopy(p_tmp2)
-        p_tmp3[0] = p_tmp3[0] / p_tmp3[2]
-        p_tmp3[1] = p_tmp3[1] / p_tmp3[2]
+        p_tmp3[0] = p_tmp3[0]/p_tmp3[2]
+        p_tmp3[1] = p_tmp3[1]/p_tmp3[2]
         p_tmp3[2] = 1
-        # print("objp_new: ", objp_new)
-        # print("p_tmp2: ", p_tmp2)
+        #print("objp_new: ", objp_new)
+        #print("p_tmp2: ", p_tmp2)
 
-        if i == 0:
+        if i==0:
             o_pixel = p_tmp
             o_camera = p_tmp2
             o_camera2 = p_tmp3
@@ -88,7 +85,7 @@ def projection_matrix(tvec, rvec, camera_mat, imgPoints, objPoints, nr):
     print("o_camera: ", o_camera.shape)
     print("o_camera: \n", o_camera)
 
-    # Rechnung
+# Rechnung
     cTp = np.dot(o_camera2, np.linalg.pinv(o_pixel))
     ptc = np.linalg.inv(cTp)
     pTc = np.dot(o_pixel, np.linalg.pinv(o_camera2))
@@ -96,20 +93,19 @@ def projection_matrix(tvec, rvec, camera_mat, imgPoints, objPoints, nr):
     print("ptc (inv_cTp): \n", ptc)
     print("pTc: \n", pTc)
 
-    # Validierung
+#Validierung
     val = np.dot(cTp, o_pixel)
     val11 = np.dot(pTc, o_camera2)
     # print("val11: ", val11)
     f_ges = []
     for i in range(0, val.shape[1]):
-        f_tmp = np.linalg.norm(val[:, i] - o_camera2[:, i])
+        f_tmp = np.linalg.norm(val[:, i]-o_camera2[:,i])
         f_ges.append(f_tmp)
     print("f_min: ", min(f_ges))
     print("f_max: ", max(f_ges))
-    print("f_mean: ", sum(f_ges) / len(f_ges))
+    print("f_mean: ", sum(f_ges)/len(f_ges))
 
     return cTp
-
 
 def calc_pixel2robot(tvec, rvec, camera_mat, bTf, fTc, pixel_coords, nr, output_name, printout):
     np.set_printoptions(precision=5)
@@ -117,7 +113,7 @@ def calc_pixel2robot(tvec, rvec, camera_mat, bTf, fTc, pixel_coords, nr, output_
 
     # pixel_tmp = np.array([[pixel_coords[nr][-1][0][0]], [pixel_coords[nr][-1][0][1]], [1]])
     pixel_tmp = pixel_coords
-
+    print("pixel_coords:\n", pixel_tmp)
     rot_mat = np.zeros((3, 3))
     cv2.Rodrigues(rvec[nr], rot_mat)
     # print("rot_mat:\n", rot_mat)
@@ -126,11 +122,11 @@ def calc_pixel2robot(tvec, rvec, camera_mat, bTf, fTc, pixel_coords, nr, output_
 
     flange_base_trans = bTf[nr]
     # flange_base_trans = np.zeros((4,4))
-    # Picture p01
+# Picture p01
     # flange_base_trans[:, 3] = np.array([488.39, 17.55, -805.12, 1])
     # rot = R.from_euler('zyx', ([-179.99, 0.00, -180.00]), degrees=True)
     # flange_base_trans[0:3, 0:3] = rot.as_matrix()
-    # Picture p04
+# Picture p04
     # flange_base_trans[:, 3] = np.array([498.43, -319.86, -790.91, 1])
     # rot = R.from_euler('zyx', ([-179.61, -1.30, -152.37]), degrees=True)
     # flange_base_trans[0:3, 0:3] = rot.as_matrix()
@@ -143,32 +139,34 @@ def calc_pixel2robot(tvec, rvec, camera_mat, bTf, fTc, pixel_coords, nr, output_
 
     xp_yp_zc = np.dot(np.linalg.inv(matrix), tvec[nr])
     # print("xp_yp_zc1: \n", xp_yp_zc)
-    xp_yp_zc[0] = a_b[0] * xp_yp_zc[2]
-    xp_yp_zc[1] = a_b[1] * xp_yp_zc[2]
+    xp_yp_zc[0] = a_b[0]*xp_yp_zc[2]
+    xp_yp_zc[1] = a_b[1]*xp_yp_zc[2]
     # xp_yp_zc[0] = rot_mat[0][0]*xp_yp_zc[0]+rot_mat[0][1]*xp_yp_zc[1]+tvec[nr][0]
     # xp_yp_zc[1] = rot_mat[1][0]*xp_yp_zc[0]+rot_mat[1][1]*xp_yp_zc[1]+tvec[nr][1]
     # print("xp_yp_zc2: \n", xp_yp_zc)
-
+    
     # transformation of any pixel in to robot base coordinate system
     trans_result = np.dot(flange_base_trans, cam_flange_trans)
     pixel_coord = np.zeros((4, 1))
-    pixel_mat = np.eye(4, 4)
+    pixel_mat = np.eye(4,4)
     pixel_coord[0:3, 0] = np.transpose(xp_yp_zc)
     pixel_coord[3] = [1]
     pixel_mat[0:3, 3] = np.transpose(xp_yp_zc)
     pixel_mat[0:3, 0:3] = rot_mat
     result = np.dot(trans_result, pixel_coord)
     result2 = np.dot(trans_result, pixel_mat)
+    
 
     # robot flange positon to reach the selected point (pixel) with the TCP of an attached tool
     Spitze_mat = np.eye(4, 4)
-    Spitze_mat[2, 3] = 112
+    Spitze_mat[2,3] = 112
     result3 = np.dot(result2, np.linalg.inv(Spitze_mat))
-    result4 = np.zeros((6, 1))
+    result4 = np.zeros((6,1))
     result4[0:3, 0] = result3[0:3, 3]
     rpy = rot2euler(result3[0:3, 0:3], degrees=True)
     result4[3:7, 0] = np.transpose(rpy)
-
+    
+    
     if printout:
         print("Transformation-Matrix: \n", trans_result)
         print("result: \n", result)
@@ -183,7 +181,6 @@ def calc_pixel2robot(tvec, rvec, camera_mat, bTf, fTc, pixel_coords, nr, output_
     #     json.dump(output_json, f, separators=(", ", ":"), indent=2)
 
     return result, trans_result, rot_mat, xp_yp_zc, result2, Spitze_mat
-
 
 def pixel2robot_tangram(tvec, rvec, camera_mat, bTc, pixel_coords, nr):
     np.set_printoptions(precision=5)
@@ -201,25 +198,25 @@ def pixel2robot_tangram(tvec, rvec, camera_mat, bTc, pixel_coords, nr):
     matrix[0:3, 2] = np.transpose(a_b)
 
     xp_yp_zc = np.dot(np.linalg.inv(matrix), tvec[nr])
-    xp_yp_zc[0] = a_b[0] * xp_yp_zc[2]
-    xp_yp_zc[1] = a_b[1] * xp_yp_zc[2]
+    xp_yp_zc[0] = a_b[0]*xp_yp_zc[2]
+    xp_yp_zc[1] = a_b[1]*xp_yp_zc[2]
 
-    pixel_mat = np.eye(4, 4)
+    pixel_mat = np.eye(4,4)
     pixel_mat[0:3, 3] = np.transpose(xp_yp_zc)
     pixel_mat[0:3, 0:3] = rot_mat
 
     result = np.dot(bTc, pixel_mat)
-    result2 = np.zeros((6, 1))
-    result2[0:3, 0] = result[0:3, 3] # X, Y, Z = 0
+    result2 = np.zeros((6,1))
+    result2[0:3, 0] = result[0:3, 3]
     rpy = rot2euler(result[0:3, 0:3], degrees=True)
     result2[3:7, 0] = np.transpose(rpy)
 
     # robot flange positon to reach the selected point (pixel) with the TCP of an attached tool
     Spitze_mat = np.eye(4, 4)
-    Spitze_mat[2, 3] = 165.3
+    Spitze_mat[2,3] = 118           #116.5
     result3 = np.dot(result, np.linalg.inv(Spitze_mat))
-    result4 = np.zeros((6, 1))
-    result4[0:3, 0] = result3[0:3, 3] # X, Y, Z = 165.3
+    result4 = np.zeros((6,1))
+    result4[0:3, 0] = result3[0:3, 3]
     rpy = rot2euler(result3[0:3, 0:3], degrees=True)
     result4[3:7, 0] = np.transpose(rpy)
 
@@ -229,16 +226,17 @@ def pixel2robot_tangram(tvec, rvec, camera_mat, bTc, pixel_coords, nr):
 
     return result2
 
+
 def camera_flange_calibration(tvec, rvec, NoP, output_name):
     # NoP = 10    # (NoP = Number of Pictures to be used for the Calibration)
     np.set_printoptions(precision=5)
     np.set_printoptions(suppress=True)
-    # Input flange coord system related to base coord system (bTf = transformation from base to flange)
+#Input flange coord system related to base coord system (bTf = transformation from base to flange)
 
     # Daten aus JSON-Datei lesen
     with open("robot_poses.json") as data:
         msg_json = json.load(data)
-
+    
     bTf_i = []
     liste = ["x", "y", "z", "a", "b", "c"]
     for i in range(NoP):
@@ -254,8 +252,9 @@ def camera_flange_calibration(tvec, rvec, NoP, output_name):
     fTf_ges = []
     for i in range(1, NoP):
         fiiTfi = np.dot(np.linalg.inv(bTf_i[i]), bTf_i[0])
+        print("fiiTfi: \n", fiiTfi)
         fTf_ges.append(fiiTfi)
-
+    
     # bTf1, bTf2, bTf3, bTf4 = (np.eye(4, 4) for i in range(4))
     # #Translational vector
     # bTf1[0:3, 3] = np.array([488.4, 17.5, -805.1])
@@ -272,6 +271,7 @@ def camera_flange_calibration(tvec, rvec, NoP, output_name):
     # bTf3[0:3, 0:3] = euler2rot(theta3, degrees=True)
     # bTf4[0:3, 0:3] = euler2rot(theta4, degrees=True)
 
+    
     # f2Tf1 = np.dot(np.linalg.inv(bTf2), bTf1)
     # f3Tf1 = np.dot(np.linalg.inv(bTf3), bTf1)
     # f4Tf1 = np.dot(np.linalg.inv(bTf4), bTf1)
@@ -280,42 +280,47 @@ def camera_flange_calibration(tvec, rvec, NoP, output_name):
     # fTf_ges.append(f3Tf1)
     # fTf_ges.append(f4Tf1)
 
-    # Input chessboard related to camera coord system (cTcb = transformation from camera to chessboard)
+
+# Input chessboard related to camera coord system (cTcb = transformation from camera to chessboard)
     cTcb_i = []
     for i in range(NoP):
         cTcb = np.eye(4, 4)
         cTcb[0:3, 3] = (np.transpose(tvec[i]))
         cv2.Rodrigues(rvec[i], cTcb[0:3, 0:3])
-        print("cTcb: \n", cTcb)
+        # print("cTcb: \n", cTcb)
         cTcb_i.append(cTcb)
-
+    
     cTc_ges = []
     for i in range(1, NoP):
-        ciiTci = np.dot(np.linalg.inv(cTcb_i[i]), cTcb_i[0])  # Schachbrett an Flange
+        ciiTci = np.dot(np.linalg.inv(cTcb_i[i]), cTcb_i[0])     #Schachbrett an Flange
         # ciiTci = np.dot(cTcb_i[i], np.linalg.inv(cTcb_i[0]))   #Kamera an Flange
         print("ciiTci: \n", ciiTci)
         cTc_ges.append(ciiTci)
+    
 
-    # Solution for equation AX = BX
+# Solution for equation AX = BX
     DA_ges, DB_ges = (None for i in range(2))
-    rA_ges, rB_ges = ([] for i in range(2))
-    for i in range(0, NoP - 1):
+    DA_ges2, rA_ges,DB_ges2, rB_ges = ([] for i in range(4))
+    for i in range(0, NoP-1):
         DAi_mat = fTf_ges[i][0:3, 0:3]
+        DA_ges2.append(DAi_mat)
         DAi = R.from_matrix(DAi_mat)
         DAi_rvec = DAi.as_rotvec()
         # DA_ges.append(DAi_rvec)
 
         DBi_mat = cTc_ges[i][0:3, 0:3]
+        DB_ges2.append(DBi_mat)
         DBi = R.from_matrix(DBi_mat)
         DBi_rvec = DBi.as_rotvec()
         # DB_ges.append(DBi_rvec)
-
+        
         if i == 0:
             DA_ges = DAi_rvec
             DB_ges = DBi_rvec
         else:
             DA_ges = np.c_[DA_ges, DAi_rvec]
             DB_ges = np.c_[DB_ges, DBi_rvec]
+        
 
         rAi = fTf_ges[i][0:3, 3]
         rA_ges.append(rAi)
@@ -323,38 +328,39 @@ def camera_flange_calibration(tvec, rvec, NoP, output_name):
         rBi = cTc_ges[i][0:3, 3]
         rB_ges.append(rBi)
 
+
     T = np.dot(DB_ges, np.transpose(DA_ges))
 
-    # singular value decomposition
+# singular value decomposition
     U, S, V = linalg.svd(T)  # V is the tranpose of the matrix calculated by matlab svd
     Up = np.dot(U, V)
     P = np.linalg.multi_dot((np.transpose(V), np.diag(S), V))
     USp, Dp, Vp = linalg.svd(P)  # Vp is the tranpose of the matrix calculated by matlab svd
-    # -----------------------------------------------
+    #-----------------------------------------------
     row, col = np.shape(P)
     f = np.linalg.det(Up)
-    if f < 0:
+    if f<0:
         X = np.eye(row, col) * (-1)
     else:
         X = np.eye(row, col)
-    # calculate rotation matrix Dx
+# calculate rotation matrix Dx 
     Dx = np.linalg.multi_dot([np.transpose(Vp), X, Vp, np.transpose(Up)])
-    print("Dx: \n", Dx)
-    # calculate translational vector rx
+    print ("Dx: \n", Dx)
+# calculate translational vector rx
     E = np.eye(3, 3)
     C_ges, d_ges = (None for i in range(2))
-    for i in range(NoP - 1):
+    for i in range(NoP-1):
         C = np.subtract(E, fTf_ges[i][0:3, 0:3])
         d = np.subtract(rA_ges[i], np.dot(Dx, rB_ges[i]))
         # C_ges.append(C)
 
         if i == 0:
             C_ges = C
-            d_ges = np.array(np.transpose([d]))
+            d_ges = np.array(np.transpose([d])) 
         else:
             C_ges = np.vstack((C_ges, C))
             d_ges = np.vstack((d_ges, np.array(np.transpose([d]))))
-
+    
     rx = np.dot(np.linalg.pinv(C_ges), d_ges)
     print("rx: \n", rx)
 
@@ -364,36 +370,66 @@ def camera_flange_calibration(tvec, rvec, NoP, output_name):
 
     print("fTc: \n", fTc)
     output_json = {"Dx": Dx.tolist(), "rx": rx.tolist(), "fTc": fTc.tolist()}
-    with open(output_name, "w") as f:
+    with open(output_name, "w") as f :
         json.dump(output_json, f, separators=(", ", ":"), indent=2)
 
-    # new for tangram: transformation robot base to camera, if camera is not attached on robot flange
+# Checking solution
+    # translational error
+    error1_ges = []
+    for i in range(NoP-1):
+        e1 = np.dot(DA_ges2[i], rx) + np.transpose(rA_ges[i][np.newaxis]) - np.dot(Dx, np.transpose(rB_ges[i][np.newaxis])) - rx
+        error1 = np.linalg.norm(e1)
+        error1_ges.append(error1)
+    error1_mean = sum(error1_ges)/len(error1_ges) 
+    print("translational error: " + str(error1_mean) + " mm")
+
+    # rotational error
+    error2_ges = []
+    for i in range(NoP-1):
+        e2 = np.linalg.multi_dot([DA_ges2[i], Dx, np.linalg.inv(np.dot(Dx, DB_ges2[i]))])
+        error2 = np.linalg.norm(cv2.Rodrigues(e2)[0])
+        error2_ges.append(error2)
+    error2_mean = sum(error2_ges)/len(error2_ges)
+    print("rotational error: " + str(error2_mean) + " rad")
+    print("rotational error: " + str(error2_mean*180/np.pi) + " degrees")
+#new for tangram: transformation robot base to camera, if camera is not attached on robot flange
     bTc_i = []
     output_json2 = {"bTc(i)": {}}
     for i in range(len(bTf_i)):
         # bTc = np.linalg.multi_dot([bTf_i[i], fTc, cTcb_i[i]])               #Kamera an Flange
-        bTc = np.linalg.multi_dot([bTf_i[i], fTc, np.linalg.inv(cTcb_i[i])])  # Schachbrett an Flange
-        output_json2["bTc(i)"].update({"bTc(" + str(i + 1) + ")": bTc.tolist()})
+        bTc = np.linalg.multi_dot([bTf_i[i], fTc, np.linalg.inv(cTcb_i[i])])  #Schachbrett an Flange
+        output_json2["bTc(i)"].update({"bTc("+str(i+1)+")": bTc.tolist()})
         bTc_i.append(bTc)
-    average = sum(bTc_i) / len(bTc_i)
+    average = sum(bTc_i)/len(bTc_i)
     output_json2["bTc(i)"].update({"bTc_average": average.tolist()})
     print("bTc(1): \n", bTc_i[0])
     print("average: \n", average)
-    with open("output_b2c.json", "w") as f:
-        json.dump(output_json2, f, separators=(", ", ":"), indent=2)
+    with open("output_b2c.json", "w") as f :
+            json.dump(output_json2, f, separators=(", ", ":"), indent=2)
 
     # comparison average
-    # bTcb_i = None
-    # cTcb_i_2 = None
-    # for i in range(len(bTf_i)):
-    #     bTcb = np.dot(bTf_i[i], fTc)
+    bTcb_i = None
+    cTcb_i_2 = None
+    for i in range(len(bTf_i)):
+        bTcb = np.dot(bTf_i[i], fTc)
 
-    #     if i == 0:
-    #         bTcb_i = bTcb
-    #         cTcb_i_2 = cTcb_i[i]
-    #     else:
-    #         bTcb_i = np.c_[bTcb_i, bTcb]
-    #         cTcb_i_2 = np.r_[cTcb_i_2, cTcb_i[i]]
+        if i == 0:
+            bTcb_i = bTcb
+            cTcb_i_2 = cTcb_i[i]
+        else:
+            bTcb_i = np.c_[bTcb_i, bTcb]  
+            cTcb_i_2 = np.r_[cTcb_i_2, cTcb_i[i]] 
+    
+    average2 = np.dot(bTcb_i, np.linalg.pinv(cTcb_i_2))
+    print("average2: \n", average2)
 
-    # average2 = np.dot(bTcb_i, np.linalg.pinv(cTcb_i_2))
-    # print("average2: \n", average2)
+def undistort_pixel(dist_coeff, camera_matrix, pixel_coords, nr):
+    print("pixel_coord:\n", pixel_coords)
+    # after first camera calibration cam_mtx and distCoff, pixel_coords in form np.array([[[x, y]]], np.float32)
+    undist_pixel = cv2.undistortPoints(pixel_coords, camera_matrix, dist_coeff)
+    print("new pixel_coord:\n", undist_pixel[0][0])
+    pix1 = cv2.convertPointsToHomogeneous(undist_pixel)[0][0]
+    print("pix1:\n", pix1)
+    pix = np.dot(camera_matrix, np.transpose(pix1[np.newaxis]))
+    print("pix:\n", pix)
+    return

@@ -1,17 +1,17 @@
 import cv2
 import numpy as np
-
+import CameraCalibration
 
 camera_mat = np.array([
     [
-      1138.9787523799525,
+      617.191792637088,
       0.0,
-      631.1836941706819
+      636.1901455799889
     ],
     [
       0.0,
-      1333.7658172355304,
-      314.83373824314583
+      614.6297676059793,
+      369.1319683028415
     ],
     [
       0.0,
@@ -21,11 +21,29 @@ camera_mat = np.array([
   ])
 
 def calculatepixels2coord(pixel_x, pixel_y, depth_transformed):
-    C_z = depth_transformed[pixel_x][pixel_y]
-    print(C_z)
+    C_z = depth_transformed[pixel_y][pixel_x]
     u_p_v = np.array([[pixel_x], [pixel_y], [1.]])
     camera_mat_inv = np.linalg.inv(camera_mat)
     C_x_y_byZ = np.dot(camera_mat_inv, u_p_v)
-    print(C_x_y_byZ)
-    #C_x = (C_x_y_byZ[0][0])/C_z
-    #C_y = (C_x_y_byZ[1][0])/C_z
+    C_x = (C_x_y_byZ[0][0])*C_z
+    C_y = (C_x_y_byZ[1][0])*C_z
+    return np.array([[C_x], [C_y], [C_z]])
+
+# Given the robotic Coord. calculate back the camera Coord.
+# return camera coordinate vector np.array[[cX],[cY],[cZ]]
+def caculateRoboticCoordToCameraCoord(robotCoord):
+    input_name2 = "output_b2c.json"
+    bTc = CameraCalibration.cam_cal().read_b2c(input_name2)
+    coord_mat = np.eye(4,4)
+    coord_mat [0:3, 3] = np.transpose(robotCoord)
+
+    camCoord_mat = np.dot(np.linalg.inv(bTc), coord_mat)
+    camCoord_vec = np.zeros((3, 1))
+    camCoord_vec[0:3, 0] = camCoord_mat[0:3, 3]
+
+    return camCoord_vec
+
+if __name__ == "__main__":
+    robotCoord = np.array([[-95.64], [557.19], [50.55]])
+    camCoord_vec = caculateRoboticCoordToCameraCoord(robotCoord)
+    print('camCoord_vec', camCoord_vec)
