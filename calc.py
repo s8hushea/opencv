@@ -43,6 +43,18 @@ def caculateRoboticCoordToCameraCoord(robotCoord):
 
     return camCoord_vec
 
+#Given the depth coordinated and weights and DeltaZs, calculate back the corrected coordinates
+#return np.array([[C_x], [C_y], [C_z])
+def fixByDeltaZ(depth_coods, weights, DeltaZs, pixel_x, pixel_y):
+    z = depth_coods[2][0]
+    averageDeltaZ = weights[0]*DeltaZs[0] + weights[1]*DeltaZs[1] + weights[2]*DeltaZs[2] + weights[3]*DeltaZs[3]
+    z_new = z + averageDeltaZ
+    u_p_v = np.array([[pixel_x], [pixel_y], [1.]])
+    camera_mat_inv = np.linalg.inv(camera_mat)
+    C_x_y_byZ = np.dot(camera_mat_inv, u_p_v)
+    C_x = (C_x_y_byZ[0][0]) * z_new
+    C_y = (C_x_y_byZ[1][0]) * z_new
+    return np.array([[C_x], [C_y], [z_new]])
 if __name__ == "__main__":
     robotCoord = np.array([[-95.64], [557.19], [50.55]])
     camCoord_vec = caculateRoboticCoordToCameraCoord(robotCoord)

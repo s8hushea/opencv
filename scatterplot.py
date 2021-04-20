@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pylab
 
 #Delta X
 #DeltaRowNs = [Blue Row N, Red Row N, Yellow Row N, Green Row N, Orange Row N, White Row N, LGreen Row N, LBlue Row N]
@@ -93,7 +93,7 @@ DeltaZRowThrees = [[-164, 86, -20.22], [-75, 87, -16.77], [11, 88, -16.71], [98,
                 ]
 
 # show X: delta Pixel X, Y: delta Pixel Y, Z: delta X
-fig1 = plt.figure(num = "X: delta Pixel X, Y: delta Pixel Y, Z: delta X")
+'''fig1 = plt.figure(num = "X: delta Pixel X, Y: delta Pixel Y, Z: delta X")
 ax = fig1.add_subplot(projection='3d')
 for m, zlow, zhigh in [('o', -20, 50)]:
     xs = [point[0] for point in DeltaXRowOnes]
@@ -164,5 +164,30 @@ for m, zlow, zhigh in [('x', -20, 50)]:
 cx.set_xlabel('Delta Pixel X')
 cx.set_ylabel('Delta Pixel Y')
 cx.set_zlabel('Delta Z')
+'''
+x = [-140, -64, 10, 87, 164, -151, -68, 11, 93, 176, -164, -75, 11, 98, 188]
+y = [6.87, 4.33, 1.69, -2.96, -5.12, 5.93, 3.6, 1.11, -2.45, -8.41, 5.01, 5.19, -0.13, -1.57, -7.17]
 
+coefficients = np.polyfit(x, y, 3)
+
+poly = np.poly1d(coefficients)
+
+
+new_x = np.linspace(x[0], x[-1])
+
+new_y = poly(new_x)
+
+
+plt.plot(x, y, "o", new_x, new_y)
+print("y=%.6fx^3+%.6fx^2+%.6fx+(%.6f)"%(poly[3],poly[2],poly[1], poly[0]))
+
+'''pylab.plot(x, y,'o')
+
+# calc the trendline
+z = np.polyfit(x, y, 1)
+p = np.poly1d(z)
+pylab.plot(x, p(x),"r--")
+# the line equation:
+print("y=%.6fx+(%.6f)"%(z[0],z[1]))
+'''
 plt.show()
