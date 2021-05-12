@@ -152,9 +152,15 @@ cx.set_zlabel('Delta Z')
 plt.show()
 '''
 
-x = [500, 576, 650, 727, 804] #row 1
-#x = [489, 572, 651, 733, 816] #row 2
-#x = [476, 565, 651, 738, 828] #row 3
+#x = [500, 576, 650, 727, 804] #row 1 x
+#x = [489, 572, 651, 733, 816] #row 2 x
+#x = [476, 565, 651, 738, 828] #row 3 x
+
+#x = [312, 374, 446] #column 1 y
+#x = [313, 374, 447] #column 2 y
+#x = [313, 375, 448] #column 3 y
+#x = [313, 375, 447] #column 4 y
+x = [313, 376, 449] #column 5 y
 
 #y = [-16.87, -14.54, -19.4, -20.03, -15.64] #DeltaZ Blue R1
 #y = [-14.08, -16.97, -17.66, -14.975, -18.25] #DeltaZ Blue R2
@@ -220,37 +226,85 @@ x = [500, 576, 650, 727, 804] #row 1
 #y8 = [4.01, 1.09, -2.34, -3.99, -8.23] #DeltaXLBlue R2
 #y8 = [5.2, 1.29, -2.78, -4.74, -8.63] #DeltaXLBlue R3
 
-y1 = [0.61, 1.1, 2.44, 4.18, 5.52] #DeltaYBlue R1
+#y1 = [0.61, 1.1, 2.44, 4.18, 5.52] #DeltaYBlue R1
 #y1 = [-1.35, -0.5, 0.42, 1.55, 1.35] #DeltaYBlue R2
 #y1 = [-1.36, -3.31, -3.1, -0.085, -0.53] #DeltaYBlue R3
 
-y2 = [2.57, 4.1, 4.24, 4.42, 5.98] #DeltaYRed R1
+#y1 = [0.61, -1.35, -1.36] #DeltaYBlueC1
+#y1 = [1.1, -0.5, -3.31] #DeltaYBlueC2
+#y1 = [2.44, 0.42, -3.1] #DeltaYBlueC3
+#y1 = [4.18, 1.55, -0.085] #DeltaYBlueC4
+y1 = [5.52, 1.35, -0.53] #DeltaYBlueC5
+
+#y2 = [2.57, 4.1, 4.24, 4.42, 5.98] #DeltaYRed R1
 #y2 = [-2.78, -2.16, -0.65, 0.01, 1.48] #DeltaYRed R2
 #y2 = [-5.95, -7.56, -5.65, -3.95, -2.9] #DeltaYRed R3
 
-y3 = [2.06, 2.76, 3.19, 4.39, 5.37] #DeltaYYellow R1
+#y2 = [2.57, -2.78, -5.95] #DeltaYRed C1
+#y2 = [4.1, -2.16, -7.56] #DeltaYRed C2
+#y2 = [4.24, -0.65, -5.65] #C3
+#y2 = [4.42, 0.01, -3.95] #C4
+y2 = [5.98, 1.48, -2.9] #C5
+
+#y3 = [2.06, 2.76, 3.19, 4.39, 5.37] #DeltaYYellow R1
 #y3 = [-1.93, -1.84, -0.82, 0.16, 0.97] #DeltaYYellow R2
 #y3 = [-6.79, -5.73, -5.81, -3.94, -3.6] #DeltaYYellow R3
 
-y4 = [0.53, 2.23, 4.44, 2.9, 5.25] #DeltaYGreen R1
+#y3 = [2.06, -1.93, -6.79] #DeltaYYellow C1
+#y3 = [2.76, -1.84, -5.73] #DeltaYYellow C2
+#y3 = [3.19, -0.82, -5.81] #DeltaYYellow C3
+#y3 = [4.39, 0.16, -3.94] #DeltaYYellow C4
+y3 = [5.37, 0.97, -3.6] #DeltaYYellow C5
+
+#y4 = [0.53, 2.23, 4.44, 2.9, 5.25] #DeltaYGreen R1
 #y4 = [-2.17, -0.98, 0.08, 1.99, 2.09] #DeltaYGreen R2
 #y4 = [-4.79, -4.89, -3.15, -2.04, -1.21] #DeltaYGreen R3
 
-y5 = [2.17, 3.25, 3.94, 3.84, 6.25] #DeltaYOrange R1
+#y4 = [0.53, -2.17, -4.79] #DeltaYGreen C1 to C5
+#y4 = [2.23, -0.98, -4.89] #C2
+#y4 = [4.44, 0.08, -3.15] #C3
+#y4 = [2.9, 1.99, -2.04] #C4
+y4 = [5.25, 2.09, -1.21] #C5
+
+#y5 = [2.17, 3.25, 3.94, 3.84, 6.25] #DeltaYOrange R1
 #y5 = [-2.17, -1, -0.9, 0.51, 1.35] #DeltaYOrange R2
 #y5 = [-6.29, -5.4, -4.34, -3.13, -2.77] #DeltaYOrange R3
 
-y6 = [0.93, 2.9, 2.22, 2.43, 4.59] #DeltaYWhite R1
+#y5 = [2.17, -2.17, -6.29] #DeltaYOrange C1 to C5
+#y5 = [3.25, -1, -5.4] #C2
+#y5 = [3.94, -0.9, -4.34] #C3
+#y5 = [3.84, 0.51, -3.13] #C4
+y5 = [6.25, 1.35, -2.77] #C5
+
+#y6 = [0.93, 2.9, 2.22, 2.43, 4.59] #DeltaYWhite R1
 #y6 = [-1.53, -1.34, -0.17, 1.01, 2.82] #DeltaYWhite R2
 #y6 = [-6.7, -4.54, -2.93, -2.26, -1.84] #DeltaYWhite R3
 
-y7 = [1.26, 2.49, 3.61, 5.36, 5.57] #DeltaYLGreen R1
+#y6 = [0.93, -1.53, -6.17] #DeltaYWhite C1 to C5
+#y6 = [2.9, -1.34, -4.54] #C2
+#y6 = [2.22, -0.17, -2.93] #C3
+#y6 = [2.43, 1.01, -2.26] #C4
+y6 = [4.59, 2.82, -1.84] #C5
+
+#y7 = [1.26, 2.49, 3.61, 5.36, 5.57] #DeltaYLGreen R1
 #y7 = [-2.48, -0.33, 0.35, 1.41, 1.76] #DeltaYLGreen R2
 #y7 = [-5.46, -5.09, -3, -2.49, -2.42] #DeltaYLGreen R3
 
-y8 = [1.28, 2.91, 3.2, 4.3, 6.21] #DeltaYLBlue R1
+#y7 = [1.26, -2.48, -5.46] #DeltaYLGreen C1 to C5
+#y7 = [2.49, -0.33, -5.09] #DeltaYLGreen C2
+#y7 = [3.61, 0.35, -3] #C3
+#y7 = [5.36, 1.41, -2.49] #C4
+y7 = [5.57, 1.76, -2.42] #C5
+
+#y8 = [1.28, 2.91, 3.2, 4.3, 6.21] #DeltaYLBlue R1
 #y8 = [-2.02, -1.14, 0.84, 1.51, 2.59] #DeltaYLBlue R2
 #y8 = [-4.55, -4.19, -2.34, -2.44, 0.27] #DeltaYLBlue R3
+
+#y8 = [1.28, -2.02, -4.55] #DeltaYLBlue
+#y8 = [2.91, -1.14, -4.19] #C2
+#y8 = [3.2, 0.84, -2.34] #C3
+#y8 = [4.3, 1.51, -2.44] #C4
+y8 = [6.21, 2.59, 0.27] #C5
 
 #x = [536, 612, 692, 768] #Row 1 in_between
 #x = [527, 610, 695, 778] #Row 2 in_between
@@ -284,13 +338,13 @@ y8 = [1.28, 2.91, 3.2, 4.3, 6.21] #DeltaYLBlue R1
 # calc the trendline
 fig = plt.figure(figsize=(16, 12))
 ax = fig.add_subplot()
-plt.suptitle('Row 3', fontsize=14, fontweight='bold')
+plt.suptitle('Column 5', fontsize=14, fontweight='bold')
 #z = np.polyfit(x, y, 1)
 z1 = np.polyfit(x, y1, 1)
 p1 = np.poly1d(z1)
 #pylab.plot(x, p(x),"r--")
 #ax.set_title('Trend Line : y={:.4f}x+{:.4f}'.format(z[0], z[1]))
-ax.plot(x, p1(x), 'b', label ='y1={:.4f}x+{:.4f}'.format(z1[0], z1[1]))
+ax.plot(x, p1(x), 'b', label='y1={:.4f}x+{:.4f}'.format(z1[0], z1[1]))
 z2 = np.polyfit(x, y2, 1)
 p2 = np.poly1d(z2)
 ax.plot(x, p2(x), 'g', label ='y2={:.4f}x+{:.4f}'.format(z2[0], z2[1]))
@@ -313,8 +367,8 @@ z8 = np.polyfit(x, y8, 1)
 p8 = np.poly1d(z8)
 ax.plot(x, p8(x), 'y', label='y8={:.4f}x+{:.4f}'.format(z8[0], z8[1]))
 plt.legend(loc="upper right")
-ax.set_xlabel('Pixel X')
-ax.set_ylabel('Delta X')
+ax.set_xlabel('Pixel Y')
+ax.set_ylabel('Delta Y')
 
 plt.show()
 

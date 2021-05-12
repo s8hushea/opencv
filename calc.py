@@ -30,6 +30,14 @@ def calculatepixels2coord(pixel_x, pixel_y, depth_transformed):
     C_y = (C_x_y_byZ[1][0])*C_z
     return np.array([[C_x], [C_y], [C_z]])
 
+def fixXandY(pixel_x, pixel_y, Z):
+    u_p_v = np.array([[pixel_x], [pixel_y], [1.]])
+    camera_mat_inv = np.linalg.inv(camera_mat)
+    C_x_y_byZ = np.dot(camera_mat_inv, u_p_v)
+    C_x = (C_x_y_byZ[0][0]) * Z
+    C_y = (C_x_y_byZ[1][0]) * Z
+    return np.array([[C_x], [C_y], [Z]])
+
 # Given the robotic Coord. calculate back the camera Coord.
 # return camera coordinate vector np.array[[cX],[cY],[cZ]]
 def caculateRoboticCoordToCameraCoord(robotCoord):
@@ -68,14 +76,15 @@ def giveWeights(pixels, pixel_inbetween):
     return [d1/distance, d2/distance, d3/distance, d4/distance]
 
 #Given pixel values, delta X, and delta Y give back Delta Z
-def getDeltaZ(x, y, DeltaX, DeltaY):
+def getDeltaZ(x, y, X_ist, Y_ist):
     camera_mat_inverse = np.linalg.inv(camera_mat)  #get inverse of camera matrix
     a1 = camera_mat_inverse[0]                      #get first row
-    upv = np.array([x], [y], [1.])                  #set upv vector
-    a = np.dot(a1, upv)                             #(1/fx, 0, 0)*upv
+    upv = np.array([[x], [y], [1.]])                  #set upv vector
+    a = np.dot(a1, upv)
+    a_ist = (a*1.0212) - 0.0002
     b1 = camera_mat_inverse[1]                      #get second row
     b = np.dot(b1, upv)                             #(0 1/fy 0)*upv
-    return [DeltaX/a, DeltaY/b]
+    return [X_ist/a_ist, Y_ist/b]
 
 if __name__ == "__main__":
     robotCoord = np.array([[-95.64], [557.19], [50.55]])

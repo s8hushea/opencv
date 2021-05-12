@@ -1,5 +1,7 @@
 import numpy as np
 import json
+import calc
+import matplotlib.pyplot as plt
 
 blue = [[500, 312, -16.87], [576, 313, -14.54], [650, 313, -19.4], [727, 313, -20.03], [804, 313, -15.64],
         [489, 374, -14.08], [572, 374, -16.97], [651, 375, -17.66], [733, 375, -14.975], [816, 376, -18.25],
@@ -53,22 +55,23 @@ test_data_blue = [[564, 306, -16.87], [651, 309, -16.41], [720, 295, -15.84], [7
                   [603, 371, -18.99], [678, 381, -16.53], [739, 346, -17.54], [617, 433, -13.27], [705, 422, -13.4],
                   [802, 398, -16.53], [475, 433, -18.17], [553, 452, -16.44], [626, 466, -15.09], [733, 443, -14.56]]
 
-pixels = [[512, 302],
-          [601, 293],
-          [669, 310],
-          [731, 313],
-          [792, 295],
-          [494, 375],
-          [562, 355],
-          [618, 369],
-          [705, 385],
-          [781, 399],
-          [466, 437],
-          [528, 433],
-          [606, 408],
-          [684, 444],
-          [799, 455]]
+pixels = [[500, 312],
+          [576, 313],
+          [650, 313],
+          [727, 313],
+          [804, 313],
+          [489, 374],
+          [572, 374],
+          [651, 375],
+          [733, 375],
+          [816, 376],
+          [476, 446],
+          [565, 447],
+          [651, 448],
+          [738, 447],
+          [828, 449]]
 
+#bgr values
 blue_boundaries = [[170, 205], [60, 95], [0, 30]]
 red_boundaries = [[40, 80], [25, 60], [205, 245]]
 yellow_boundaries = [[0, 70], [90, 170], [165, 255]]
@@ -80,75 +83,208 @@ lblue_boundaries = [[210, 225], [125, 140], [35, 60]]
 
 
 def euclidean_distance(x1, x2):
-    return np.sqrt(((x1[0] - x2[0]) ** 2 + (x1[1] - x2[1]) ** 2))
+    return np.sqrt(((x1 - x2) ** 2))
 
 
 def main():
     with open('color.json') as f:
         colormap = json.load(f)
+    with open('depthvalues.json') as f:
+        depthvalues = json.load(f)
 
     for pixel in pixels:
         color = getColor(pixel[0], pixel[1], colormap)
-        print(color)
+        row = setRow(pixel[1])
+        column = setColumn(pixel[0])
+
+        pos = calc.calculatepixels2coord(pixel[0], pixel[1], depthvalues)
+        print(pos)
+        # pos[0], pos[1] -> X_ist, Y_ist
+
         if color == 'blue':
-            deltaXLine = [-0.0332, 20.3393]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.01, -6.4184]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0322, 20.2566]
+            elif row == 2:
+                deltaXLine = [-0.0322, 19.1761]
+            elif row == 3:
+                deltaXLine = [-0.0285, 17.1786]
+
+            if column == 1:
+                deltaYLine = [-0.0143, 4.7007]
+            elif column == 2:
+                deltaYLine = [-0.0331, 11.6053]
+            elif column == 3:
+                deltaYLine = [-0.0412, 15.5391]
+            elif column == 4:
+                deltaYLine = [-0.0316, 13.8313]
+            elif column == 5:
+                deltaYLine = [-0.044, 18.8015]
+
+
         elif color == 'red':
-            deltaXLine = [-0.043, 26.4787]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0121, -8.1777]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0379, 23.4931]
+            elif row == 2:
+                deltaXLine = [-0.0405, 24.6951]
+            elif row == 3:
+                deltaXLine = [-0.0414, 25.1631]
+
+            if column == 1:
+                deltaYLine = [-0.0533, 17.8517]
+            elif column == 2:
+                deltaYLine = [-0.0551, 19.8508]
+            elif column == 3:
+                deltaYLine = [-0.0381, 14.1483]
+            elif column == 4:
+                deltaYLine = [-0.0353, 13.7402]
+            elif column == 5:
+                deltaYLine = [-0.0477, 19.9563]
+
         elif color == 'yellow':
-            deltaXLine = [-0.0413, 25.3398]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0141, -8.7805]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0407, 25.5764]
+            elif row == 2:
+                deltaXLine = [-0.0363, 21.7653]
+            elif row == 3:
+                deltaXLine = [-0.0384, 23.1014]
+
+            if column == 1:
+                deltaYLine = [-0.0433, 14.5692]
+            elif column == 2:
+                deltaYLine = [-0.0526, 19.0843]
+            elif column == 3:
+                deltaYLine = [-0.0411, 16.1340]
+            elif column == 4:
+                deltaYLine = [-0.0504, 20.1990]
+            elif column == 5:
+                deltaYLine = [-0.0434, 19.4728]
+
         elif color == 'green':
-            deltaXLine = [-0.0686, 42.1663]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0112, -7.8822]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0615, 38.5892]
+            elif row == 2:
+                deltaXLine = [-0.0666, 40.4382]
+            elif row == 3:
+                deltaXLine = [-0.0632, 37.9416]
+
+            if column == 1:
+                deltaYLine = [-0.0631, 21.7414]
+            elif column == 2:
+                deltaYLine = [-0.0866, 30.8584]
+            elif column == 3:
+                deltaYLine = [-0.0731, 27.0013]
+            elif column == 4:
+                deltaYLine = [-0.0623, 23.6694]
+            elif column == 5:
+                deltaYLine = [-0.0652, 26.2355]
         elif color == 'orange':
-            deltaXLine = [-0.0535, 33.1977]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0108, -7.4058]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0493, 31.2982]
+            elif row == 2:
+                deltaXLine = [-0.0486, 29.5904]
+            elif row == 3:
+                deltaXLine = [-0.0513, 31.2301]
+
+            if column == 1:
+                deltaYLine = [-0.0630, 21.7414]
+            elif column == 2:
+                deltaYLine = [-0.0644, 23.2983]
+            elif column == 3:
+                deltaYLine = [-0.0609, 22.6338]
+            elif column == 4:
+                deltaYLine = [-0.0520, 20.0709]
+            elif column == 5:
+                deltaYLine = [-0.0661, 26.6702]
+
         elif color == 'white':
-            deltaXLine = [-0.0418, 25.3575]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0125, -9.4287]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0415, 26.1701]
+            elif row == 2:
+                deltaXLine = [-0.0362, 21.4363]
+            elif row == 3:
+                deltaXLine = [-0.0392, 22.8033]
+
+            if column == 1:
+                deltaYLine = [-0.0499, 16.6081]
+            elif column == 2:
+                deltaYLine = [-0.0568, 20.5116]
+            elif column == 3:
+                deltaYLine = [-0.0489, 18.8265]
+            elif column == 4:
+                deltaYLine = [-0.0585, 23.5457]
+            elif column == 5:
+                deltaYLine = [-0.0587, 23.9077]
+
         elif color == 'lgreen':
-            deltaXLine = [-0.0359, 21.5497]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0129, -8.4060]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0347, 21.6199]
+            elif row == 2:
+                deltaXLine = [-0.0283, 16.3750]
+            elif row == 3:
+                deltaXLine = [-0.0369, 21.5956]
+
+            if column == 1:
+                deltaYLine = [-0.0396, 12.8040]
+            elif column == 2:
+                deltaYLine = [-0.0531, 18.8767]
+            elif column == 3:
+                deltaYLine = [-0.0559, 21.6132]
+            elif column == 4:
+                deltaYLine = [-0.0374, 15.0904]
+            elif column == 5:
+                deltaYLine = [-0.0474, 20.0388]
+
         elif color == 'lblue':
-            deltaXLine = [-0.05673, 34.6161]
-            DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
-            deltaYLine = [0.0093, -7.2362]
-            DeltaY = deltaYLine[0] * pixel[0] + deltaYLine[1]
-            pixel.append(DeltaX)
-            pixel.append(DeltaY)
+            if row == 1:
+                deltaXLine = [-0.0575, 35.9560]
+            elif row == 2:
+                deltaXLine = [-0.0504, 30.4584]
+            elif row == 3:
+                deltaXLine = [-0.0508, 29.9312]
 
-    print(pixels)
+            if column == 1:
+                deltaYLine = [-0.0661, 22.7155]
+            elif column == 2:
+                deltaYLine = [-0.0630, 22.2226]
+            elif column == 3:
+                deltaYLine = [-0.0667, 24.1165]
+            elif column == 4:
+                deltaYLine = [-0.0620, 23.7164]
+            elif column == 5:
+                deltaYLine = [-0.0659, 25.8992]
 
+        DeltaX = deltaXLine[0] * pixel[0] + deltaXLine[1]
+        DeltaY = deltaYLine[0] * pixel[1] + deltaYLine[1]
+        z_new = calc.getDeltaZ(pixel[0], pixel[1], pos[0], pos[1])
+        x_y_z_new = calc.fixXandY(pixel[0], pixel[1], z_new[0])
+        print('Pixel: ',pixel[0:2])
+        #pixel.append(DeltaX)
+        #pixel.append(DeltaY)
+        #pixel.append(DeltaZ)
+        #print(deltaXLine)
+        #print(deltaYLine)
+        print('Xnew', x_y_z_new[0])
+        print('Ynew', x_y_z_new[1])
+        print('Znew', x_y_z_new[2][0])
+        print('--------------------')
+
+
+    '''x = [test_data_blue[0][0], test_data_blue[1][0], test_data_blue[2][0], test_data_blue[3][0]]
+    y = [0.82, -1.28, -3.45, -4.82]
+    fig = plt.figure(figsize=(16, 12))
+    ax = fig.add_subplot()
+    plt.suptitle('Row 1', fontsize=14, fontweight='bold')
+    z1 = np.polyfit(x, y, 1)
+    p1 = np.poly1d(z1)
+    ax.plot(x, p1(x), 'b', label='y={:.4f}x+{:.4f}'.format(z1[0], z1[1]))
+    deltaXLine = [-0.0322, 20.2566]
+    p2 = np.poly1d(deltaXLine)
+    ax.plot(x, p2(x), 'r', label='y={:.4f}x+{:.4f}'.format(deltaXLine[0], deltaXLine[1]))
+    plt.legend(loc="upper right")
+    ax.set_xlabel('PixelX')
+    ax.set_ylabel('DeltaX')
+
+    plt.show()'''
 
 
 def getColor(x, y, colormap):
@@ -172,6 +308,15 @@ def getColor(x, y, colormap):
         return 'lblue'
 
 
+def setRow(y):
+    y_rows = [313, 375, 447]
+    distances = [euclidean_distance(y, ys) for ys in y_rows]
+    return (np.argsort(distances)[0]+1)    #Return row number
+
+def setColumn(x):
+    x_columns = [488, 571, 651, 733, 816]
+    distances = [euclidean_distance(x, xs) for xs in x_columns]
+    return (np.argsort(distances)[0]+1)
 '''def blue_knn(part):
     distances = [euclidean_distance(part, trainpart) for trainpart in blue]
     k_indices = np.argsort(distances)[:4]

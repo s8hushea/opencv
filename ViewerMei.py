@@ -68,24 +68,23 @@ def main():
     pixel_x = 485
     pixel_y = 469
 
-    pixels = [[505, 312, np.array([[119.3], [562.75], [68.09]])],
-              [581, 313, np.array([[5.71], [549.58], [49.38]])],
-              [655, 313, np.array([[-86.94], [527.84], [50.41]])],
-              [732, 313, np.array([[-171.15], [561.92], [49.53]])],
-              [809, 313, np.array([[157.73], [669.52], [67.65]])],
-              [494, 374, np.array([[66.92], [637.63], [30.34]])],
-              [577, 374, np.array([[-29.65], [640.02], [10.67]])],
-              [656, 375, np.array([[-105.98], [611.84], [50.31]])],
-              [738, 375, np.array([[46.05], [727.23], [29.41]])],
-              [821, 376, np.array([[-56.77], [723.58], [48.96]])]]
-    ''',
-              [476, 446, np.array([[-167.77], [699.95], [69.06]])],
-              [565, 447, np.array([[210.18], [740.19], [48.35]])],
-              [651, 448, np.array([[117.76], [763.25], [48.1]])],
-              [738, 447, np.array([[33.94], [779.25], [48.53]])],
-              [828, 449, np.array([[-81.76], [770.39], [87.93]])]
+    pixels = [[512, 302, np.array([[119.3], [562.75], [68.09]])],
+              [601, 293, np.array([[5.71], [549.58], [49.38]])],
+              [669, 310, np.array([[-86.94], [527.84], [50.41]])],
+              [731, 313, np.array([[-171.15], [561.92], [49.53]])],
+              [792, 295, np.array([[157.73], [669.52], [67.65]])],
+              [494, 375, np.array([[66.92], [637.63], [30.34]])],
+              [562, 355, np.array([[-29.65], [640.02], [10.67]])],
+              [618, 369, np.array([[-105.98], [611.84], [50.31]])],
+              [705, 385, np.array([[46.05], [727.23], [29.41]])],
+              [781, 399, np.array([[-56.77], [723.58], [48.96]])],
+              [466, 437, np.array([[-167.77], [699.95], [69.06]])],
+              [528, 433, np.array([[210.18], [740.19], [48.35]])],
+              [606, 408, np.array([[117.76], [763.25], [48.1]])],
+              [684, 444, np.array([[33.94], [779.25], [48.53]])],
+              [799, 455, np.array([[-81.76], [770.39], [87.93]])]
               ]
-'''
+
     input_name = "output_wp2camera.json"
     input_name2 = "output_b2c.json"
     tvec, rvec, camera_matrix, dist_coeffs = CameraCalibration.cam_cal().read_wp2c(input_name)
@@ -113,10 +112,12 @@ def main():
     pc_coods = []
     coods_pixels = []
 
-    '''for pixel in pixels:
+    for pixel in pixels:
         cood = []
+        print('pixel[0], pixel[1]', pixel[0], pixel[1])
         xc_yc_zc = calc.calculatepixels2coord(pixel[0], pixel[1], transformed_depth)
         cood.append(xc_yc_zc)
+        print('xc_yc_zc', xc_yc_zc)
         print('DepthValueCoordinates for pixel{}:\n {}'.format(pixel[0:2], xc_yc_zc))
         depth_coods.append(xc_yc_zc)
         xpc_ypc_zpc = pointcloud[pixel[1]][pixel[0]]
@@ -150,7 +151,7 @@ def main():
         result2_pc[3:7, 0] = np.transpose(rpy)
         cood.append(result2_pc)
         print('Robot CS based on PC for pixel {}:\n {}'.format(pixel[0:2], result2_pc))
-        coods_pixels.append(cood)'''
+        coods_pixels.append(cood)
 
     for pixel in pixels:
         print('BGR of Pixel{}: {}'.format(pixel[0:2], colormap[pixel[1]][pixel[0]]))
