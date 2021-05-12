@@ -41,15 +41,6 @@ def main():
         json.dump(pointcloud.tolist(), f)
     with open('color.json', 'w') as f:
         json.dump(color.tolist(), f)
-    '''with open('depthvalues.json') as f:
-        transformed_depth = json.load(f)
-    with open('pointcloud.json') as f:
-        pointcloud = json.load(f)
-    print('Depth Coordinates: \n',calc.calculatepixels2coord(452, 508, transformed_depth))
-    print('PC coordinates: \n', pointcloud[508][452])
-    print('Depth Coordinates: \n', calc.calculatepixels2coord(591, 263, transformed_depth))
-    print('PC coordinates: \n', pointcloud[263][591])
-    print('Depth Coordinates: \n', calc.calculatepixels2coord(760, 267, transformed_depth))
-    print('PC coordinates: \n', pointcloud[267][760])'''
+
 if __name__ == "__main__":
     main()
