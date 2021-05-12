@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 import json
-import pyk4a
-from helpers import colorize
-from pyk4a import Config, PyK4A
+#import pyk4a
+#from helpers import colorize
+#from pyk4a import Config, PyK4A
 import calc
 import CameraCalibration
 import undistortion
@@ -68,23 +68,24 @@ def main():
     pixel_x = 485
     pixel_y = 469
 
-    pixels = [[500, 312, np.array([[204.27], [557.56], [50.16]])],
-              [577, 312, np.array([[104.08], [557.19], [50.01]])],
-              [651, 313, np.array([[4.95], [557.01], [49.27]])],
-              [727, 313, np.array([[-94.03], [557.56], [50.83]])],
-              [805, 313, np.array([[-196.71], [558.29], [50.87]])],
-              [489, 374, np.array([[205.05], [656.72], [49.68]])],
-              [571, 374, np.array([[103.94], [655.71], [49.79]])],
-              [652, 374, np.array([[4.56], [655.73], [49.4]])],
-              [733, 375, np.array([[-96.09], [656.56], [50.31]])],
-              [816, 375, np.array([[-195.88], [655.99], [50.71]])],
-              [475, 446, np.array([[205.11], [756.66], [48.33]])],
-              [566, 447, np.array([[101.66], [756.65], [48.77]])],
-              [651, 447, np.array([[5.52], [756.65], [49.13]])],
-              [740, 449, np.array([[-96.42], [756.65], [49.22]])],
-              [829, 449, np.array([[-195.28], [757.48], [49.59]])]
+    pixels = [[505, 312, np.array([[119.3], [562.75], [68.09]])],
+              [581, 313, np.array([[5.71], [549.58], [49.38]])],
+              [655, 313, np.array([[-86.94], [527.84], [50.41]])],
+              [732, 313, np.array([[-171.15], [561.92], [49.53]])],
+              [809, 313, np.array([[157.73], [669.52], [67.65]])],
+              [494, 374, np.array([[66.92], [637.63], [30.34]])],
+              [577, 374, np.array([[-29.65], [640.02], [10.67]])],
+              [656, 375, np.array([[-105.98], [611.84], [50.31]])],
+              [738, 375, np.array([[46.05], [727.23], [29.41]])],
+              [821, 376, np.array([[-56.77], [723.58], [48.96]])]]
+    ''',
+              [476, 446, np.array([[-167.77], [699.95], [69.06]])],
+              [565, 447, np.array([[210.18], [740.19], [48.35]])],
+              [651, 448, np.array([[117.76], [763.25], [48.1]])],
+              [738, 447, np.array([[33.94], [779.25], [48.53]])],
+              [828, 449, np.array([[-81.76], [770.39], [87.93]])]
               ]
-
+'''
     input_name = "output_wp2camera.json"
     input_name2 = "output_b2c.json"
     tvec, rvec, camera_matrix, dist_coeffs = CameraCalibration.cam_cal().read_wp2c(input_name)
@@ -99,6 +100,8 @@ def main():
         transformed_depth = json.load(f)
     with open('pointcloud.json') as f:
         pointcloud = json.load(f)
+    with open('color.json') as f:
+        colormap = json.load(f)
     #x_y_z = calc.calculatepixels2coord(pixel_x, pixel_y, transformed_depth_undist)
     #print('3D Posotion Coordinate with depth', x_y_z)
     #xc_yc_zc = CameraCalibration.cam_cal().callPixel2camera_tangram(pixel_x, pixel_y, 20)
@@ -110,7 +113,7 @@ def main():
     pc_coods = []
     coods_pixels = []
 
-    for pixel in pixels:
+    '''for pixel in pixels:
         cood = []
         xc_yc_zc = calc.calculatepixels2coord(pixel[0], pixel[1], transformed_depth)
         cood.append(xc_yc_zc)
@@ -147,7 +150,10 @@ def main():
         result2_pc[3:7, 0] = np.transpose(rpy)
         cood.append(result2_pc)
         print('Robot CS based on PC for pixel {}:\n {}'.format(pixel[0:2], result2_pc))
-        coods_pixels.append(cood)
+        coods_pixels.append(cood)'''
+
+    for pixel in pixels:
+        print('BGR of Pixel{}: {}'.format(pixel[0:2], colormap[pixel[1]][pixel[0]]))
 
     xpc_ypc_zpc = pointcloud[pixel_y][pixel_x]
     xpc_ypc_zpc_np = np.array([[xpc_ypc_zpc[0]], [xpc_ypc_zpc[1]], [xpc_ypc_zpc[2]]])

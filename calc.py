@@ -67,6 +67,15 @@ def giveWeights(pixels, pixel_inbetween):
     distance = d1 + d2 + d3 + d4
     return [d1/distance, d2/distance, d3/distance, d4/distance]
 
+#Given pixel values, delta X, and delta Y give back Delta Z
+def getDeltaZ(x, y, DeltaX, DeltaY):
+    camera_mat_inverse = np.linalg.inv(camera_mat)  #get inverse of camera matrix
+    a1 = camera_mat_inverse[0]                      #get first row
+    upv = np.array([x], [y], [1.])                  #set upv vector
+    a = np.dot(a1, upv)                             #(1/fx, 0, 0)*upv
+    b1 = camera_mat_inverse[1]                      #get second row
+    b = np.dot(b1, upv)                             #(0 1/fy 0)*upv
+    return [DeltaX/a, DeltaY/b]
 
 if __name__ == "__main__":
     robotCoord = np.array([[-95.64], [557.19], [50.55]])
